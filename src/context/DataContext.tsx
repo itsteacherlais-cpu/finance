@@ -1,12 +1,22 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from './AuthContext'
-import type { Categoria, FormaPagamento, NovaCategoria, NovaFormaPagamento, NovaTransacao, Transacao } from '../types'
+import type {
+  Categoria,
+  FormaPagamento,
+  NovaCategoria,
+  NovaFormaPagamento,
+  NovaReservaRecorrente,
+  NovaTransacao,
+  ReservaRecorrente,
+  Transacao,
+} from '../types'
 
 interface DataContextValue {
   transacoes: Transacao[]
   categorias: Categoria[]
   formasPagamento: FormaPagamento[]
+  reservasRecorrentes: ReservaRecorrente[]
   carregando: boolean
   erro: string | null
   recarregar: () => Promise<void>
@@ -22,6 +32,10 @@ interface DataContextValue {
   criarFormaPagamento: (dados: NovaFormaPagamento) => Promise<void>
   atualizarFormaPagamento: (id: string, dados: Partial<NovaFormaPagamento>) => Promise<void>
   excluirFormaPagamento: (id: string) => Promise<void>
+
+  criarReservaRecorrente: (dados: NovaReservaRecorrente) => Promise<void>
+  atualizarReservaRecorrente: (id: string, dados: Partial<NovaReservaRecorrente>) => Promise<void>
+  excluirReservaRecorrente: (id: string) => Promise<void>
 }
 
 const DataContext = createContext<DataContextValue | undefined>(undefined)
@@ -37,6 +51,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [transacoes, setTransacoes] = useState<Transacao[]>([])
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [formasPagamento, setFormasPagamento] = useState<FormaPagamento[]>([])
+  const [reservasRecorrentes, setReservasRecorrentes] = useState<ReservaRecorrente[]>([])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
 
@@ -45,13 +60,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setCarregando(true)
     setErro(null)
 
-    const [transacoesRes, categoriasRes, formasRes] = await Promise.all([
+    const [transacoesRes, categoriasRes, formasRes, reservasRes] = await Promise.all([
       supabase.from('transacoes').select('*').order('data', { ascending: false }),
       supabase.from('categorias').select('*').order('nome', { ascending: true }),
       supabase.from('formas_pagamento').select('*').order('nome', { ascending: true }),
+      supabase.from('reservas_recorrentes').select('*').order('criado_em', { ascending: true }),
     ])
 
-    const primeiroErro = transacoesRes.error || categoriasRes.error || formasRes.error
+    const primeiroErro = transacoesRes.error || categoriasRes.error || formasRes.error || reservasRes.error
     if (primeiroErro) {
       setErro(primeiroErro.message)
       setCarregando(false)
@@ -61,6 +77,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setTransacoes(transacoesRes.data ?? [])
     setCategorias(categoriasRes.data ?? [])
     setFormasPagamento(formasRes.data ?? [])
+    setReservasRecorrentes(reservasRes.data ?? [])
     setCarregando(false)
   }, [userId])
 
@@ -71,6 +88,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setTransacoes([])
       setCategorias([])
       setFormasPagamento([])
+      setReservasRecorrentes([])
       setCarregando(false)
     }
   }, [userId, recarregar])
@@ -144,12 +162,36 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setFormasPagamento((atual) => atual.filter((f) => f.id !== id))
   }
 
+  async function criarReservaRecorrente(dados: NovaReservaRecorrente) {
+    if (!userId) return
+    const { data, error } = await supabase
+      .from('reservas_recorrentes')
+      .insert({ ...dados, user_id: userId })
+      .select()
+      .single()
+    if (error) throw new Error(error.message)
+    setReservasRecorrentes((atual) => [...atual, data as ReservaRecorrente])
+  }
+
+  async function atualizarReservaRecorrente(id: string, dados: Partial<NovaReservaRecorrente>) {
+    const { data, error } = await supabase.from('reservas_recorrentes').update(dados).eq('id', id).select().single()
+    if (error) throw new Error(error.message)
+    setReservasRecorrentes((atual) => atual.map((r) => (r.id === id ? (data as ReservaRecorrente) : r)))
+  }
+
+  async function excluirReservaRecorrente(id: string) {
+    const { error } = await supabase.from('reservas_recorrentes').delete().eq('id', id)
+    if (error) throw new Error(error.message)
+    setReservasRecorrentes((atual) => atual.filter((r) => r.id !== id))
+  }
+
   return (
     <DataContext.Provider
       value={{
         transacoes,
         categorias,
         formasPagamento,
+        reservasRecorrentes,
         carregando,
         erro,
         recarregar,
@@ -162,6 +204,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
         criarFormaPagamento,
         atualizarFormaPagamento,
         excluirFormaPagamento,
+        criarReservaRecorrente,
+        atualizarReservaRecorrente,
+        excluirReservaRecorrente,
       }}
     >
       {children}

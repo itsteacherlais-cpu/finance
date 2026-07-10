@@ -1,10 +1,11 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { IconeEngrenagem, IconeGrafico, IconeLista, IconeMaisCirculo } from './icones'
+import { IconeCofre, IconeEngrenagem, IconeGrafico, IconeLista, IconeMaisCirculo } from './icones'
 
 const itensNav = [
   { para: '/', rotulo: 'Painel', Icone: IconeGrafico, fim: true },
   { para: '/novo', rotulo: 'Novo', Icone: IconeMaisCirculo, fim: false },
   { para: '/transacoes', rotulo: 'Transações', Icone: IconeLista, fim: false },
+  { para: '/reservas', rotulo: 'Reservas', Icone: IconeCofre, fim: false },
   { para: '/config', rotulo: 'Ajustes', Icone: IconeEngrenagem, fim: false },
 ]
 

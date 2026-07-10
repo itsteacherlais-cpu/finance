@@ -133,16 +133,37 @@ supabase/
   dentro da função `criar_dados_iniciais` — é a lista que aparece pronta
   quando alguém cria uma conta nova.
 
-### O que ainda falta (próximas fases do projeto)
+### Como funciona a tela "Reservas Inteligentes" (Fase 2)
 
-Este é o MVP (Fase 1): lançamentos, categorias/formas de pagamento
-editáveis e o painel com os 3 gráficos principais.
+Toda vez que essa tela é aberta, o app olha o histórico de saídas e procura
+despesas que se repetem em intervalos parecidos (ex: todo mês, a cada 3
+meses, todo ano) — isso vira uma **sugestão automática**. Nada é salvo até
+você tocar em "Confirmar"; se tocar em "Ignorar", aquela sugestão some (a
+lista de ignoradas fica só no seu navegador, então pode reaparecer se você
+usar outro aparelho).
 
-A Fase 2 (ainda não implementada) é a parte de "inteligência": detectar
-sozinho quais gastos são recorrentes (anuais, mensais, quinzenais) e
-sugerir quanto guardar por mês para cada um deles, na tela "Reservas
-Inteligentes". A tabela `reservas_recorrentes` já existe no banco de dados,
-pronta para quando essa fase for construída.
+Depois de confirmada — ou adicionada manualmente pelo botão "+ Adicionar
+manualmente" (útil para uma despesa anual que você só tem 1 mês de
+histórico) — a despesa vira uma **reserva confirmada**, e o app calcula:
+- quanto guardar por mês (`valor médio ÷ intervalo em meses`);
+- quanto você já "teria guardado" no ciclo atual, supondo que começou a
+  guardar desde a última ocorrência conhecida.
+
+A regra para o que conta como "regular" (e vira sugestão automática) está
+em `src/lib/deteccaoRecorrencia.ts` — se um dia achar que ela está sugerindo
+coisas erradas ou deixando passar despesas óbvias, é ali que se ajusta a
+margem de tolerância.
+
+A **previsão do próximo mês**, no topo dessa tela, soma a média do que você
+gasta no dia a dia (excluindo categorias que já têm reserva confirmada,
+para não contar duas vezes) com o total das reservas do mês.
+
+### O que ainda falta (próxima fase)
+
+Fases 1 e 2 do briefing original estão implementadas. A Fase 3 (fora deste
+escopo por enquanto) traz refinamentos: atalhos rápidos totalmente
+personalizáveis, filtros mais avançados nos gráficos e exportação de
+relatórios em PDF/CSV.
 
 ---
 

@@ -55,3 +55,4 @@ export interface ReservaRecorrente {
 export type NovaTransacao = Omit<Transacao, 'id' | 'user_id' | 'criado_em'>
 export type NovaCategoria = Omit<Categoria, 'id' | 'user_id' | 'criado_em'>
 export type NovaFormaPagamento = Omit<FormaPagamento, 'id' | 'user_id' | 'criado_em'>
+export type NovaReservaRecorrente = Omit<ReservaRecorrente, 'id' | 'user_id' | 'criado_em'>

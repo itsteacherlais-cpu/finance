@@ -6,6 +6,7 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import NovoLancamento from './pages/NovoLancamento'
 import Transacoes from './pages/Transacoes'
+import ReservasInteligentes from './pages/ReservasInteligentes'
 import Configuracoes from './pages/Configuracoes'
 
 export default function App() {
@@ -46,6 +47,7 @@ function AreaAutenticada() {
           <Route index element={<Dashboard />} />
           <Route path="novo" element={<NovoLancamento />} />
           <Route path="transacoes" element={<Transacoes />} />
+          <Route path="reservas" element={<ReservasInteligentes />} />
           <Route path="config" element={<Configuracoes />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

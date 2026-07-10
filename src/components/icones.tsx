@@ -60,3 +60,30 @@ export function IconeSair(props: SVGProps<SVGSVGElement>) {
     </svg>
   )
 }
+
+export function IconeCofre(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M4 12a7 7 0 0 1 7-7c3 0 5.5 1.8 6.5 4.3L20 9v4l-2 .6" />
+      <path d="M4 12v4a2 2 0 0 0 2 2h7a4 4 0 0 0 4-4v-.4" />
+      <path d="M8 18v2M13 18v2" />
+      <circle cx="8" cy="11" r="0.75" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+export function IconeCheck(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  )
+}
+
+export function IconeX(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M18 6 6 18M6 6l12 12" />
+    </svg>
+  )
+}
