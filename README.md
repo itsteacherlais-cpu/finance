@@ -39,7 +39,12 @@ pagamento — com sincronização automática entre os dispositivos.
 7. Agora vá em **"Project Settings" > "API"**. Você vai precisar de dois
    valores nessa página:
    - **Project URL** (algo como `https://xxxxx.supabase.co`)
-   - **anon public key** (uma chave longa de letras e números)
+   - A chave pública do projeto — em projetos mais novos aparece como
+     **"Publishable key"** (começa com `sb_publishable_...`); em projetos
+     mais antigos aparece como **"anon" "public"** (uma sequência longa
+     começando com `eyJ...`). É a mesma coisa, só mudou o nome. **Nunca**
+     use a **"Secret key"** (`sb_secret_...`) ou a **"service_role"** —
+     essas são secretas e não devem ir para o site.
 
    Guarde essa aba aberta — você vai usar esses dois valores no próximo
    passo e também na hora de publicar o site.
@@ -85,11 +90,17 @@ A Vercel hospeda o site gratuitamente e dá um endereço público (algo como
 4. Na tela de configuração do projeto, abra a seção **"Environment
    Variables"** e adicione as duas variáveis do Supabase:
    - `VITE_SUPABASE_URL` → cole o Project URL
-   - `VITE_SUPABASE_ANON_KEY` → cole a anon public key
+   - `VITE_SUPABASE_ANON_KEY` → cole a Publishable key (ou anon public key,
+     no nome antigo)
 5. Clique em **"Deploy"** e aguarde. Em cerca de um minuto o site estará no
    ar, com um link público.
 6. Sempre que você (ou o Claude Code) enviar mudanças para o repositório no
    GitHub, a Vercel publica a nova versão automaticamente.
+7. **Se o site abrir em branco:** normalmente é porque essas duas variáveis
+   não foram salvas antes do primeiro deploy. Adicione/confira elas em
+   **Settings > Environment Variables** (marcando "Production") e depois
+   force uma nova publicação em **Deployments > "..." > Redeploy** — só
+   adicionar a variável não atualiza um site que já foi publicado.
 
 ---
 
