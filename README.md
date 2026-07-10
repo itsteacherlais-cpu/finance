@@ -158,12 +158,28 @@ A **previsão do próximo mês**, no topo dessa tela, soma a média do que você
 gasta no dia a dia (excluindo categorias que já têm reserva confirmada,
 para não contar duas vezes) com o total das reservas do mês.
 
-### O que ainda falta (próxima fase)
+### Refinamentos da Fase 3
 
-Fases 1 e 2 do briefing original estão implementadas. A Fase 3 (fora deste
-escopo por enquanto) traz refinamentos: atalhos rápidos totalmente
-personalizáveis, filtros mais avançados nos gráficos e exportação de
-relatórios em PDF/CSV.
+- **Atalhos rápidos personalizáveis**: em Ajustes > "Atalhos rápidos", dá
+  para montar seus próprios botões de 1 toque (nome, tipo, categoria, forma
+  de pagamento e até um valor fixo — útil para uma assinatura que é sempre
+  o mesmo valor). Dá para reordenar com as setas ou remover. Enquanto não
+  tiver nenhum atalho manual cadastrado, o app continua sugerindo sozinho
+  a partir do que você mais lança (o comportamento da Fase 1).
+- **Filtros avançados no Painel**: além de período e forma de pagamento,
+  agora dá para filtrar por categoria, e o gráfico de rosca tem um botão
+  para alternar entre "Saídas" e "Entradas".
+- **Exportação de relatórios**: na tela "Transações", os botões "Baixar
+  CSV" (abre certinho no Excel/Google Planilhas) e "Imprimir / PDF" (abre o
+  diálogo de impressão do navegador — no computador ou no iPhone, escolha
+  "Salvar em PDF" em vez de uma impressora física) exportam exatamente os
+  lançamentos filtrados na tela.
+
+### O que ainda falta (fora de escopo por enquanto)
+
+Fases 1, 2 e 3 do briefing original estão implementadas. A Fase 4 (expansão
+para outras áreas da vida além de finanças) é uma visão de longo prazo e
+não está no escopo deste app.
 
 ---
 

@@ -70,6 +70,23 @@ create table if not exists public.reservas_recorrentes (
   criado_em timestamptz not null default now()
 );
 
+-- ----------------------------------------------------------------------------
+-- Tabela: atalhos_rapidos
+-- Botões de acesso rápido que a usuária monta na tela de Ajustes, para
+-- lançar em 1 toque os gastos mais comuns do dia a dia (Fase 3).
+-- ----------------------------------------------------------------------------
+create table if not exists public.atalhos_rapidos (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  rotulo text not null,
+  tipo text not null check (tipo in ('entrada', 'saida')),
+  categoria_id uuid references public.categorias (id) on delete set null,
+  forma_pagamento_id uuid references public.formas_pagamento (id) on delete set null,
+  valor_padrao numeric(12, 2),
+  ordem integer not null default 0,
+  criado_em timestamptz not null default now()
+);
+
 -- Índices para acelerar as consultas mais comuns do dashboard.
 create index if not exists transacoes_user_data_idx on public.transacoes (user_id, data desc);
 create index if not exists transacoes_user_categoria_idx on public.transacoes (user_id, categoria_id);
@@ -83,6 +100,7 @@ alter table public.categorias enable row level security;
 alter table public.formas_pagamento enable row level security;
 alter table public.transacoes enable row level security;
 alter table public.reservas_recorrentes enable row level security;
+alter table public.atalhos_rapidos enable row level security;
 
 drop policy if exists "categorias_por_usuario" on public.categorias;
 create policy "categorias_por_usuario" on public.categorias
@@ -98,6 +116,10 @@ create policy "transacoes_por_usuario" on public.transacoes
 
 drop policy if exists "reservas_recorrentes_por_usuario" on public.reservas_recorrentes;
 create policy "reservas_recorrentes_por_usuario" on public.reservas_recorrentes
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "atalhos_rapidos_por_usuario" on public.atalhos_rapidos;
+create policy "atalhos_rapidos_por_usuario" on public.atalhos_rapidos
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- ----------------------------------------------------------------------------

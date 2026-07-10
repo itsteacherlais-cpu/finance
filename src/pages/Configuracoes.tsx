@@ -3,8 +3,8 @@ import { useData } from '../context/DataContext'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabaseClient'
 import { proximaCorSugerida } from '../lib/paletaCategorias'
-import { IconeLixeira, IconeSair } from '../components/icones'
-import type { TipoCategoria, TipoFormaPagamento } from '../types'
+import { IconeLixeira, IconeSair, IconeSetaBaixo, IconeSetaCima } from '../components/icones'
+import type { TipoCategoria, TipoFormaPagamento, TipoTransacao } from '../types'
 
 // Tela onde a usuária cadastra e ajusta suas próprias categorias e
 // formas de pagamento — o que alimenta os menus usados no resto do app.
@@ -32,6 +32,7 @@ export default function Configuracoes() {
 
       <SecaoCategorias />
       <SecaoFormasPagamento />
+      <SecaoAtalhos />
 
       <section className="rounded-xl border border-bege-200 bg-white p-4">
         <h2 className="mb-2 text-sm font-semibold text-cafe-700">Conta</h2>
@@ -125,6 +126,166 @@ function SecaoCategorias() {
           className="rounded-lg bg-oliva-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
         >
           Adicionar categoria
+        </button>
+      </form>
+    </section>
+  )
+}
+
+function SecaoAtalhos() {
+  const { atalhosRapidos, categorias, formasPagamento, criarAtalhoRapido, atualizarAtalhoRapido, excluirAtalhoRapido } = useData()
+  const [rotulo, setRotulo] = useState('')
+  const [tipo, setTipo] = useState<TipoTransacao>('saida')
+  const [categoriaId, setCategoriaId] = useState('')
+  const [formaPagamentoId, setFormaPagamentoId] = useState('')
+  const [valorPadrao, setValorPadrao] = useState('')
+  const [erro, setErro] = useState<string | null>(null)
+  const [salvando, setSalvando] = useState(false)
+
+  const categoriasDoTipo = categorias.filter((c) => c.tipo === tipo || c.tipo === 'ambos')
+  const atalhosOrdenados = [...atalhosRapidos].sort((a, b) => a.ordem - b.ordem)
+
+  async function aoEnviar(evento: FormEvent) {
+    evento.preventDefault()
+    if (!rotulo.trim()) return
+    setErro(null)
+    setSalvando(true)
+    try {
+      await criarAtalhoRapido({
+        rotulo: rotulo.trim(),
+        tipo,
+        categoria_id: categoriaId || null,
+        forma_pagamento_id: formaPagamentoId || null,
+        valor_padrao: valorPadrao ? Number(valorPadrao.replace(',', '.')) : null,
+        ordem: atalhosRapidos.length,
+      })
+      setRotulo('')
+      setValorPadrao('')
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Não foi possível salvar.')
+    } finally {
+      setSalvando(false)
+    }
+  }
+
+  async function aoExcluir(id: string) {
+    if (!confirm('Remover este atalho?')) return
+    await excluirAtalhoRapido(id)
+  }
+
+  async function mover(indice: number, direcao: -1 | 1) {
+    const alvo = atalhosOrdenados[indice + direcao]
+    const atual = atalhosOrdenados[indice]
+    if (!alvo) return
+    await Promise.all([
+      atualizarAtalhoRapido(atual.id, { ordem: alvo.ordem }),
+      atualizarAtalhoRapido(alvo.id, { ordem: atual.ordem }),
+    ])
+  }
+
+  return (
+    <section className="rounded-xl border border-bege-200 bg-white p-4">
+      <h2 className="mb-1 text-sm font-semibold text-cafe-700">Atalhos rápidos</h2>
+      <p className="mb-3 text-xs text-cafe-500">
+        Botões de 1 toque na tela "Novo". Enquanto não tiver nenhum aqui, o app sugere sozinho a partir do que você mais
+        lança.
+      </p>
+
+      <ul className="mb-4 flex flex-col gap-1.5">
+        {atalhosOrdenados.map((a, indice) => (
+          <li key={a.id} className="flex items-center justify-between gap-2 rounded-lg bg-bege-50 px-3 py-2">
+            <span className="min-w-0 truncate text-sm text-cafe-700">
+              {a.rotulo}
+              {a.valor_padrao ? ` · R$ ${a.valor_padrao.toFixed(2).replace('.', ',')}` : ''}
+            </span>
+            <span className="flex shrink-0 items-center gap-2">
+              <button
+                type="button"
+                onClick={() => mover(indice, -1)}
+                disabled={indice === 0}
+                aria-label="Mover para cima"
+                className="text-cafe-400 hover:text-cafe-600 disabled:opacity-30"
+              >
+                <IconeSetaCima className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => mover(indice, 1)}
+                disabled={indice === atalhosOrdenados.length - 1}
+                aria-label="Mover para baixo"
+                className="text-cafe-400 hover:text-cafe-600 disabled:opacity-30"
+              >
+                <IconeSetaBaixo className="h-4 w-4" />
+              </button>
+              <button type="button" onClick={() => aoExcluir(a.id)} aria-label="Excluir atalho" className="text-cafe-400 hover:text-terracota-600">
+                <IconeLixeira className="h-4 w-4" />
+              </button>
+            </span>
+          </li>
+        ))}
+        {atalhosOrdenados.length === 0 && <p className="text-sm text-cafe-500">Nenhum atalho manual ainda.</p>}
+      </ul>
+
+      <form onSubmit={aoEnviar} className="flex flex-col gap-2">
+        <input
+          value={rotulo}
+          onChange={(e) => setRotulo(e.target.value)}
+          placeholder="Nome do atalho (ex: Mercado - PIX)"
+          className="w-full rounded-lg border border-bege-200 px-3 py-2 text-sm text-cafe-800 outline-none focus:border-oliva-500"
+        />
+        <div className="flex gap-2">
+          <select
+            value={tipo}
+            onChange={(e) => {
+              setTipo(e.target.value as TipoTransacao)
+              setCategoriaId('')
+            }}
+            className="rounded-lg border border-bege-200 px-2 py-2 text-sm text-cafe-700 outline-none focus:border-oliva-500"
+          >
+            <option value="saida">Saída</option>
+            <option value="entrada">Entrada</option>
+          </select>
+          <select
+            value={categoriaId}
+            onChange={(e) => setCategoriaId(e.target.value)}
+            className="flex-1 rounded-lg border border-bege-200 px-2 py-2 text-sm text-cafe-700 outline-none focus:border-oliva-500"
+          >
+            <option value="">Sem categoria</option>
+            {categoriasDoTipo.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nome}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex gap-2">
+          <select
+            value={formaPagamentoId}
+            onChange={(e) => setFormaPagamentoId(e.target.value)}
+            className="flex-1 rounded-lg border border-bege-200 px-2 py-2 text-sm text-cafe-700 outline-none focus:border-oliva-500"
+          >
+            <option value="">Sem forma de pagamento</option>
+            {formasPagamento.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.nome}
+              </option>
+            ))}
+          </select>
+          <input
+            value={valorPadrao}
+            onChange={(e) => setValorPadrao(e.target.value)}
+            placeholder="Valor fixo (opcional)"
+            inputMode="decimal"
+            className="w-36 rounded-lg border border-bege-200 px-3 py-2 text-sm text-cafe-800 outline-none focus:border-oliva-500"
+          />
+        </div>
+        {erro && <p className="text-xs text-terracota-600">{erro}</p>}
+        <button
+          type="submit"
+          disabled={salvando}
+          className="rounded-lg bg-oliva-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+        >
+          Adicionar atalho
         </button>
       </form>
     </section>

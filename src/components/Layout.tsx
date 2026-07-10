@@ -13,12 +13,12 @@ const itensNav = [
 // navegação fixa embaixo (pensada para uso com o polegar no iPhone).
 export default function Layout() {
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-bege-50">
-      <main className="mx-auto w-full max-w-lg flex-1 overflow-y-auto px-4 pt-6 pb-24">
+    <div className="flex min-h-full flex-1 flex-col bg-bege-50 print:bg-white">
+      <main className="mx-auto w-full max-w-lg flex-1 overflow-y-auto px-4 pt-6 pb-24 print:max-w-none print:overflow-visible print:p-0">
         <Outlet />
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 border-t border-bege-200 bg-white/95 backdrop-blur pb-[env(safe-area-inset-bottom)]">
+      <nav className="fixed inset-x-0 bottom-0 border-t border-bege-200 bg-white/95 backdrop-blur pb-[env(safe-area-inset-bottom)] print:hidden">
         <div className="mx-auto flex max-w-lg items-stretch justify-around">
           {itensNav.map(({ para, rotulo, Icone, fim }) => (
             <NavLink

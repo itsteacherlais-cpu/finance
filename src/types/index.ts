@@ -50,9 +50,22 @@ export interface ReservaRecorrente {
   criado_em: string
 }
 
+export interface AtalhoRapido {
+  id: string
+  user_id: string
+  rotulo: string
+  tipo: TipoTransacao
+  categoria_id: string | null
+  forma_pagamento_id: string | null
+  valor_padrao: number | null
+  ordem: number
+  criado_em: string
+}
+
 // Campos que a usuária preenche ao criar/editar — sem os campos
 // gerados automaticamente pelo banco (id, user_id, criado_em).
 export type NovaTransacao = Omit<Transacao, 'id' | 'user_id' | 'criado_em'>
 export type NovaCategoria = Omit<Categoria, 'id' | 'user_id' | 'criado_em'>
 export type NovaFormaPagamento = Omit<FormaPagamento, 'id' | 'user_id' | 'criado_em'>
 export type NovaReservaRecorrente = Omit<ReservaRecorrente, 'id' | 'user_id' | 'criado_em'>
+export type NovoAtalhoRapido = Omit<AtalhoRapido, 'id' | 'user_id' | 'criado_em'>

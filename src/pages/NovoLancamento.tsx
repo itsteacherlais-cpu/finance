@@ -5,12 +5,21 @@ import { calcularAtalhosRapidos } from '../lib/atalhos'
 import { hojeISO } from '../lib/formatacao'
 import type { TipoTransacao } from '../types'
 
+interface AtalhoExibicao {
+  chave: string
+  rotulo: string
+  tipo: TipoTransacao
+  categoriaId: string | null
+  formaPagamentoId: string | null
+  valorPadrao: number | null
+}
+
 // Tela principal de uso diário: lançar um gasto ou ganho o mais rápido
 // possível. Os botões de "atalho" no topo pré-preenchem tipo, categoria
 // e forma de pagamento com base no que a usuária mais lança — ela só
 // precisa digitar o valor e confirmar.
 export default function NovoLancamento() {
-  const { categorias, formasPagamento, transacoes, criarTransacao } = useData()
+  const { categorias, formasPagamento, transacoes, atalhosRapidos, criarTransacao } = useData()
   const navegar = useNavigate()
 
   const [tipo, setTipo] = useState<TipoTransacao>('saida')
@@ -26,21 +35,44 @@ export default function NovoLancamento() {
   const nomeCategoria = (id: string | null) => categorias.find((c) => c.id === id)?.nome ?? 'Sem categoria'
   const nomeFormaPagamento = (id: string | null) => formasPagamento.find((f) => f.id === id)?.nome ?? 'Sem forma de pagamento'
 
-  const atalhos = useMemo(
-    () => calcularAtalhosRapidos(transacoes, nomeCategoria, nomeFormaPagamento),
+  // Se a usuária já montou atalhos manualmente em Ajustes, usamos eles.
+  // Sem nenhum atalho manual, o app sugere sozinho a partir do que ela
+  // mais lança (veja src/lib/atalhos.ts).
+  const atalhos: AtalhoExibicao[] = useMemo(() => {
+    if (atalhosRapidos.length > 0) {
+      return atalhosRapidos.map((a) => ({
+        chave: a.id,
+        rotulo: a.rotulo,
+        tipo: a.tipo,
+        categoriaId: a.categoria_id,
+        formaPagamentoId: a.forma_pagamento_id,
+        valorPadrao: a.valor_padrao,
+      }))
+    }
+    return calcularAtalhosRapidos(transacoes, nomeCategoria, nomeFormaPagamento).map((a) => ({
+      chave: a.chave,
+      rotulo: a.rotulo,
+      tipo: a.tipo,
+      categoriaId: a.categoria_id,
+      formaPagamentoId: a.forma_pagamento_id,
+      valorPadrao: null,
+    }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [transacoes, categorias, formasPagamento],
-  )
+  }, [atalhosRapidos, transacoes, categorias, formasPagamento])
 
   const categoriasDoTipo = categorias.filter((c) => c.tipo === tipo || c.tipo === 'ambos')
 
-  function aplicarAtalho(atalho: (typeof atalhos)[number]) {
+  function aplicarAtalho(atalho: AtalhoExibicao) {
     setTipo(atalho.tipo)
-    setCategoriaId(atalho.categoria_id ?? '')
-    setFormaPagamentoId(atalho.forma_pagamento_id ?? '')
+    setCategoriaId(atalho.categoriaId ?? '')
+    setFormaPagamentoId(atalho.formaPagamentoId ?? '')
     setErro(null)
     setSucesso(false)
-    document.getElementById('valor')?.focus()
+    if (atalho.valorPadrao) {
+      setValor(atalho.valorPadrao.toFixed(2).replace('.', ','))
+    } else {
+      document.getElementById('valor')?.focus()
+    }
   }
 
   async function aoEnviar(evento: FormEvent) {

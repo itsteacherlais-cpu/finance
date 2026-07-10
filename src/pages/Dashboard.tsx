@@ -30,17 +30,24 @@ export default function Dashboard() {
   const [opcaoPeriodo, setOpcaoPeriodo] = useState<OpcaoPeriodo>('mes-atual')
   const [personalizado, setPersonalizado] = useState<IntervaloDatas>({ inicio: hojeISO(), fim: hojeISO() })
   const [formaFiltro, setFormaFiltro] = useState('todas')
+  const [categoriaFiltro, setCategoriaFiltro] = useState('todas')
+  const [tipoPizza, setTipoPizza] = useState<'saida' | 'entrada'>('saida')
 
   const intervalo = calcularIntervalo(opcaoPeriodo, personalizado)
 
-  const transacoesDaForma = useMemo(
-    () => transacoes.filter((t) => formaFiltro === 'todas' || t.forma_pagamento_id === formaFiltro),
-    [transacoes, formaFiltro],
+  const transacoesFiltradas = useMemo(
+    () =>
+      transacoes.filter(
+        (t) =>
+          (formaFiltro === 'todas' || t.forma_pagamento_id === formaFiltro) &&
+          (categoriaFiltro === 'todas' || t.categoria_id === categoriaFiltro),
+      ),
+    [transacoes, formaFiltro, categoriaFiltro],
   )
 
   const transacoesDoPeriodo = useMemo(
-    () => transacoesDaForma.filter((t) => t.data >= intervalo.inicio && t.data <= intervalo.fim),
-    [transacoesDaForma, intervalo.inicio, intervalo.fim],
+    () => transacoesFiltradas.filter((t) => t.data >= intervalo.inicio && t.data <= intervalo.fim),
+    [transacoesFiltradas, intervalo.inicio, intervalo.fim],
   )
 
   const totalEntradas = transacoesDoPeriodo.filter((t) => t.tipo === 'entrada').reduce((s, t) => s + t.valor, 0)
@@ -49,13 +56,13 @@ export default function Dashboard() {
 
   const fatiasCategoria = useMemo(
     () => agruparPorCategoria(
-      transacoesDoPeriodo.filter((t) => t.tipo === 'saida'),
+      transacoesDoPeriodo.filter((t) => t.tipo === tipoPizza),
       categorias,
     ),
-    [transacoesDoPeriodo, categorias],
+    [transacoesDoPeriodo, categorias, tipoPizza],
   )
 
-  const pontosMensais = useMemo(() => agruparPorMes(transacoesDaForma, 12), [transacoesDaForma])
+  const pontosMensais = useMemo(() => agruparPorMes(transacoesFiltradas, 12), [transacoesFiltradas])
   const saldoAcumulado = useMemo(() => calcularSaldoAcumulado(pontosMensais), [pontosMensais])
 
   if (carregando) {
@@ -73,18 +80,32 @@ export default function Dashboard() {
           onMudarOpcao={setOpcaoPeriodo}
           onMudarPersonalizado={setPersonalizado}
         />
-        <select
-          value={formaFiltro}
-          onChange={(e) => setFormaFiltro(e.target.value)}
-          className="w-fit rounded-lg border border-bege-200 bg-white px-3 py-2 text-sm text-cafe-700 outline-none focus:border-oliva-500"
-        >
-          <option value="todas">Todas as formas de pagamento</option>
-          {formasPagamento.map((f) => (
-            <option key={f.id} value={f.id}>
-              {f.nome}
-            </option>
-          ))}
-        </select>
+        <div className="flex flex-wrap gap-2">
+          <select
+            value={formaFiltro}
+            onChange={(e) => setFormaFiltro(e.target.value)}
+            className="w-fit rounded-lg border border-bege-200 bg-white px-3 py-2 text-sm text-cafe-700 outline-none focus:border-oliva-500"
+          >
+            <option value="todas">Todas as formas de pagamento</option>
+            {formasPagamento.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.nome}
+              </option>
+            ))}
+          </select>
+          <select
+            value={categoriaFiltro}
+            onChange={(e) => setCategoriaFiltro(e.target.value)}
+            className="w-fit rounded-lg border border-bege-200 bg-white px-3 py-2 text-sm text-cafe-700 outline-none focus:border-oliva-500"
+          >
+            <option value="todas">Todas as categorias</option>
+            {categorias.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nome}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-2">
@@ -94,10 +115,30 @@ export default function Dashboard() {
       </div>
 
       <section className="rounded-xl border border-bege-200 bg-white p-4">
-        <h2 className="mb-1 text-sm font-semibold text-cafe-700">Gastos por categoria</h2>
+        <div className="mb-1 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-cafe-700">{tipoPizza === 'saida' ? 'Gastos' : 'Ganhos'} por categoria</h2>
+          <div className="flex rounded-lg border border-bege-200 p-0.5 text-xs">
+            <button
+              type="button"
+              onClick={() => setTipoPizza('saida')}
+              className={`rounded-md px-2.5 py-1 font-medium ${tipoPizza === 'saida' ? 'bg-terracota-500 text-white' : 'text-cafe-500'}`}
+            >
+              Saídas
+            </button>
+            <button
+              type="button"
+              onClick={() => setTipoPizza('entrada')}
+              className={`rounded-md px-2.5 py-1 font-medium ${tipoPizza === 'entrada' ? 'bg-oliva-600 text-white' : 'text-cafe-500'}`}
+            >
+              Entradas
+            </button>
+          </div>
+        </div>
         <p className="mb-3 text-xs text-cafe-500">No período selecionado</p>
         {fatiasCategoria.length === 0 ? (
-          <p className="py-8 text-center text-sm text-cafe-500">Nenhuma saída registrada neste período.</p>
+          <p className="py-8 text-center text-sm text-cafe-500">
+            Nenhuma {tipoPizza === 'saida' ? 'saída' : 'entrada'} registrada neste período.
+          </p>
         ) : (
           <>
             <ResponsiveContainer width="100%" height={240}>

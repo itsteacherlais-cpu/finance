@@ -2,12 +2,14 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from './AuthContext'
 import type {
+  AtalhoRapido,
   Categoria,
   FormaPagamento,
   NovaCategoria,
   NovaFormaPagamento,
   NovaReservaRecorrente,
   NovaTransacao,
+  NovoAtalhoRapido,
   ReservaRecorrente,
   Transacao,
 } from '../types'
@@ -17,6 +19,7 @@ interface DataContextValue {
   categorias: Categoria[]
   formasPagamento: FormaPagamento[]
   reservasRecorrentes: ReservaRecorrente[]
+  atalhosRapidos: AtalhoRapido[]
   carregando: boolean
   erro: string | null
   recarregar: () => Promise<void>
@@ -36,6 +39,10 @@ interface DataContextValue {
   criarReservaRecorrente: (dados: NovaReservaRecorrente) => Promise<void>
   atualizarReservaRecorrente: (id: string, dados: Partial<NovaReservaRecorrente>) => Promise<void>
   excluirReservaRecorrente: (id: string) => Promise<void>
+
+  criarAtalhoRapido: (dados: NovoAtalhoRapido) => Promise<void>
+  atualizarAtalhoRapido: (id: string, dados: Partial<NovoAtalhoRapido>) => Promise<void>
+  excluirAtalhoRapido: (id: string) => Promise<void>
 }
 
 const DataContext = createContext<DataContextValue | undefined>(undefined)
@@ -52,6 +59,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [formasPagamento, setFormasPagamento] = useState<FormaPagamento[]>([])
   const [reservasRecorrentes, setReservasRecorrentes] = useState<ReservaRecorrente[]>([])
+  const [atalhosRapidos, setAtalhosRapidos] = useState<AtalhoRapido[]>([])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
 
@@ -60,14 +68,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setCarregando(true)
     setErro(null)
 
-    const [transacoesRes, categoriasRes, formasRes, reservasRes] = await Promise.all([
+    const [transacoesRes, categoriasRes, formasRes, reservasRes, atalhosRes] = await Promise.all([
       supabase.from('transacoes').select('*').order('data', { ascending: false }),
       supabase.from('categorias').select('*').order('nome', { ascending: true }),
       supabase.from('formas_pagamento').select('*').order('nome', { ascending: true }),
       supabase.from('reservas_recorrentes').select('*').order('criado_em', { ascending: true }),
+      supabase.from('atalhos_rapidos').select('*').order('ordem', { ascending: true }),
     ])
 
-    const primeiroErro = transacoesRes.error || categoriasRes.error || formasRes.error || reservasRes.error
+    const primeiroErro = transacoesRes.error || categoriasRes.error || formasRes.error || reservasRes.error || atalhosRes.error
     if (primeiroErro) {
       setErro(primeiroErro.message)
       setCarregando(false)
@@ -78,6 +87,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setCategorias(categoriasRes.data ?? [])
     setFormasPagamento(formasRes.data ?? [])
     setReservasRecorrentes(reservasRes.data ?? [])
+    setAtalhosRapidos(atalhosRes.data ?? [])
     setCarregando(false)
   }, [userId])
 
@@ -89,6 +99,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setCategorias([])
       setFormasPagamento([])
       setReservasRecorrentes([])
+      setAtalhosRapidos([])
       setCarregando(false)
     }
   }, [userId, recarregar])
@@ -185,6 +196,29 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setReservasRecorrentes((atual) => atual.filter((r) => r.id !== id))
   }
 
+  async function criarAtalhoRapido(dados: NovoAtalhoRapido) {
+    if (!userId) return
+    const { data, error } = await supabase
+      .from('atalhos_rapidos')
+      .insert({ ...dados, user_id: userId })
+      .select()
+      .single()
+    if (error) throw new Error(error.message)
+    setAtalhosRapidos((atual) => [...atual, data as AtalhoRapido].sort((a, b) => a.ordem - b.ordem))
+  }
+
+  async function atualizarAtalhoRapido(id: string, dados: Partial<NovoAtalhoRapido>) {
+    const { data, error } = await supabase.from('atalhos_rapidos').update(dados).eq('id', id).select().single()
+    if (error) throw new Error(error.message)
+    setAtalhosRapidos((atual) => atual.map((a) => (a.id === id ? (data as AtalhoRapido) : a)).sort((a, b) => a.ordem - b.ordem))
+  }
+
+  async function excluirAtalhoRapido(id: string) {
+    const { error } = await supabase.from('atalhos_rapidos').delete().eq('id', id)
+    if (error) throw new Error(error.message)
+    setAtalhosRapidos((atual) => atual.filter((a) => a.id !== id))
+  }
+
   return (
     <DataContext.Provider
       value={{
@@ -192,6 +226,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         categorias,
         formasPagamento,
         reservasRecorrentes,
+        atalhosRapidos,
         carregando,
         erro,
         recarregar,
@@ -207,6 +242,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
         criarReservaRecorrente,
         atualizarReservaRecorrente,
         excluirReservaRecorrente,
+        criarAtalhoRapido,
+        atualizarAtalhoRapido,
+        excluirAtalhoRapido,
       }}
     >
       {children}
