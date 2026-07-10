@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react'
 import { useData } from '../context/DataContext'
-import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabaseClient'
 import { proximaCorSugerida } from '../lib/paletaCategorias'
 import { IconeLixeira, IconeSair, IconeSetaBaixo, IconeSetaCima } from '../components/icones'
@@ -24,8 +23,6 @@ const TIPOS_FORMA: { valor: TipoFormaPagamento; rotulo: string }[] = [
 ]
 
 export default function Configuracoes() {
-  const { session } = useAuth()
-
   return (
     <div className="flex flex-col gap-8 pb-4">
       <h1 className="text-xl font-semibold text-cafe-800">Ajustes</h1>
@@ -35,15 +32,17 @@ export default function Configuracoes() {
       <SecaoAtalhos />
 
       <section className="rounded-xl border border-bege-200 bg-white p-4">
-        <h2 className="mb-2 text-sm font-semibold text-cafe-700">Conta</h2>
-        <p className="mb-3 truncate text-sm text-cafe-500">{session?.user.email}</p>
+        <h2 className="mb-2 text-sm font-semibold text-cafe-700">Privacidade</h2>
+        <p className="mb-3 text-sm text-cafe-500">
+          Bloqueia o app agora neste aparelho — da próxima vez, vai pedir o PIN de novo.
+        </p>
         <button
           type="button"
           onClick={() => supabase.auth.signOut()}
           className="flex items-center gap-2 rounded-xl border border-bege-200 px-4 py-2.5 text-sm font-medium text-cafe-600"
         >
           <IconeSair className="h-4 w-4" />
-          Sair da conta
+          Bloquear app
         </button>
       </section>
     </div>

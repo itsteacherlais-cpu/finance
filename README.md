@@ -33,9 +33,11 @@ pagamento — com sincronização automática entre os dispositivos.
    - É seguro rodar esse script mais de uma vez, caso precise.
 6. No menu à esquerda, vá em **"Authentication" > "Providers"** e confirme
    que **"Email"** está habilitado (já vem habilitado por padrão).
-   - Dica: em **"Authentication" > "Settings"**, se quiser pular a etapa de
-     confirmação por e-mail ao criar a conta (mais prático para uso
-     pessoal), desative a opção "Confirm email".
+   - **Necessário:** em **"Authentication" > "Settings"**, desative a opção
+     **"Confirm email"**. O app não pede e-mail/senha na tela — ele cria
+     uma única conta interna sozinho na primeira vez que você digita o PIN
+     (veja a seção 2 abaixo) — e sem desativar isso, essa conta ficaria
+     esperando para sempre por uma confirmação que nunca chega.
 7. Agora vá em **"Project Settings" > "API"**. Você vai precisar de dois
    valores nessa página:
    - **Project URL** (algo como `https://xxxxx.supabase.co`)
@@ -58,12 +60,20 @@ mais recente).
 
 1. Nesta pasta do projeto, copie o arquivo `.env.example` e renomeie a
    cópia para `.env`.
-2. Abra o arquivo `.env` e preencha com os valores que você pegou no passo
-   anterior:
+2. Abra o arquivo `.env` e preencha:
    ```
    VITE_SUPABASE_URL=https://xxxxx.supabase.co
-   VITE_SUPABASE_ANON_KEY=sua-chave-anon-aqui
+   VITE_SUPABASE_ANON_KEY=sua-chave-publica-aqui
+
+   VITE_APP_PIN=escolha-um-pin-seu
+   VITE_APP_EMAIL=seu-email-aqui
+   VITE_APP_PASSWORD=escolha-uma-senha-interna-qualquer
    ```
+   As três últimas variáveis não são "sua conta" — é uma senha interna que
+   só o app usa por trás dos panos para conversar com o Supabase. Você só
+   precisa saber o **PIN** (`VITE_APP_PIN`) no dia a dia; escolha um fácil
+   de digitar no celular. `VITE_APP_EMAIL` pode ser seu e-mail de verdade
+   (não precisa confirmar, já que desativamos isso no passo anterior).
 3. No terminal, dentro desta pasta, rode:
    ```
    npm install
@@ -71,8 +81,9 @@ mais recente).
    ```
 4. Abra o endereço que aparecer no terminal (geralmente
    `http://localhost:5173`) no navegador.
-5. Crie sua conta (e-mail e senha) na tela inicial — essa é a conta que
-   você vai usar também pelo celular.
+5. Digite o PIN que você escolheu — na primeira vez, o app cria a conta
+   interna sozinho; nas próximas, ele já reconhece o PIN e entra direto.
+   Esse mesmo PIN é o que você vai usar depois no celular também.
 
 ---
 
@@ -88,19 +99,40 @@ A Vercel hospeda o site gratuitamente e dá um endereço público (algo como
 3. Clique em **"Add New..." > "Project"** e selecione o repositório deste
    app.
 4. Na tela de configuração do projeto, abra a seção **"Environment
-   Variables"** e adicione as duas variáveis do Supabase:
-   - `VITE_SUPABASE_URL` → cole o Project URL
-   - `VITE_SUPABASE_ANON_KEY` → cole a Publishable key (ou anon public key,
-     no nome antigo)
+   Variables"** e adicione as cinco variáveis (as mesmas do arquivo `.env`
+   que você preencheu no passo anterior — pode copiar os mesmos valores):
+   - `VITE_SUPABASE_URL` → o Project URL
+   - `VITE_SUPABASE_ANON_KEY` → a Publishable key (ou anon public key, no
+     nome antigo)
+   - `VITE_APP_PIN` → o PIN que você escolheu
+   - `VITE_APP_EMAIL` → o e-mail que você escolheu
+   - `VITE_APP_PASSWORD` → a senha interna que você escolheu
 5. Clique em **"Deploy"** e aguarde. Em cerca de um minuto o site estará no
    ar, com um link público.
 6. Sempre que você (ou o Claude Code) enviar mudanças para o repositório no
    GitHub, a Vercel publica a nova versão automaticamente.
-7. **Se o site abrir em branco:** normalmente é porque essas duas variáveis
-   não foram salvas antes do primeiro deploy. Adicione/confira elas em
+7. **Se o site abrir em branco:** normalmente é porque essas variáveis não
+   foram salvas antes do primeiro deploy. Adicione/confira elas em
    **Settings > Environment Variables** (marcando "Production") e depois
    force uma nova publicação em **Deployments > "..." > Redeploy** — só
    adicionar a variável não atualiza um site que já foi publicado.
+
+### Sobre a tela de PIN
+
+Em vez de "criar conta", o app pede só um PIN — mas é importante entender
+o que isso protege e o que não protege:
+
+- **Protege contra** alguém abrir o link por acaso e ver seus dados sem
+  querer, ou uma pessoa próxima curiosa mexendo no seu celular/computador.
+- **Não protege contra** alguém com conhecimento técnico que abra as
+  ferramentas de desenvolvedor do navegador — o PIN e a senha interna
+  ficam dentro do código do site, então são possíveis de encontrar por
+  quem souber procurar. Isso é uma limitação de qualquer app que roda só
+  no navegador, sem um servidor próprio por trás.
+- Por causa disso, **não compartilhe o link do site publicamente** (redes
+  sociais, grupos grandes, etc.) — trate-o como se fosse a senha do app.
+- Se quiser trocar o PIN depois, é só mudar `VITE_APP_PIN` na Vercel
+  (Settings > Environment Variables) e clicar em Redeploy.
 
 ---
 

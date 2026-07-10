@@ -2,7 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { DataProvider } from './context/DataContext'
 import Layout from './components/Layout'
-import Login from './pages/Login'
+import BloqueioPin from './pages/BloqueioPin'
 import Dashboard from './pages/Dashboard'
 import NovoLancamento from './pages/NovoLancamento'
 import Transacoes from './pages/Transacoes'
@@ -19,8 +19,8 @@ export default function App() {
   )
 }
 
-// Mostra a tela de login enquanto não há sessão, e só carrega os dados
-// financeiros (DataProvider) depois que a usuária está autenticada.
+// Mostra a tela de PIN enquanto não há sessão, e só carrega os dados
+// financeiros (DataProvider) depois que o PIN foi confirmado.
 function AreaAutenticada() {
   const { session, carregando } = useAuth()
 
@@ -35,7 +35,7 @@ function AreaAutenticada() {
   if (!session) {
     return (
       <Routes>
-        <Route path="*" element={<Login />} />
+        <Route path="*" element={<BloqueioPin />} />
       </Routes>
     )
   }
