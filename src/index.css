@@ -1,0 +1,51 @@
+@import 'tailwindcss';
+
+/*
+  Paleta de cores do app: tons terrosos e aconchegantes.
+  Para trocar as cores no futuro, basta editar os valores aqui —
+  elas são usadas em todo o app através das classes bg-*, text-*, etc.
+  (ex: bg-oliva-600, text-cafe-800)
+*/
+@theme {
+  --color-bege-50: #faf7f0;
+  --color-bege-100: #f3ecdd;
+  --color-bege-200: #e9dcc0;
+
+  --color-cafe-500: #8a6f52;
+  --color-cafe-600: #6f5940;
+  --color-cafe-700: #574533;
+  --color-cafe-800: #40331f;
+  --color-cafe-900: #2b2213;
+
+  --color-oliva-400: #8fa377;
+  --color-oliva-500: #6b7d5a;
+  --color-oliva-600: #556448;
+  --color-oliva-700: #3f513a;
+
+  --color-terracota-400: #d98c6a;
+  --color-terracota-500: #c1704e;
+  --color-terracota-600: #a3583a;
+
+  --color-entrada: #6b7d5a;
+  --color-saida: #c1704e;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bege-50);
+  color: var(--color-cafe-800);
+  -webkit-tap-highlight-color: transparent;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Evita que o iPhone deixe uma faixa branca atrás da barra de navegação inferior */
+#root {
+  display: flex;
+  flex-direction: column;
+}
