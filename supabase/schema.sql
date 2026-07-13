@@ -49,8 +49,31 @@ create table if not exists public.transacoes (
   forma_pagamento_id uuid references public.formas_pagamento (id) on delete set null,
   descricao text,
   recorrente boolean not null default false,
+  origem text not null default 'manual' check (origem in ('manual', 'importado')),
+  hash_importacao text,
   criado_em timestamptz not null default now()
 );
+
+-- Colunas novas da importação de extratos em PDF, adicionadas com "if not
+-- exists" para quem já tinha a tabela criada por uma versão anterior deste
+-- script continuar podendo rodá-lo sem erro.
+alter table public.transacoes add column if not exists origem text not null default 'manual';
+alter table public.transacoes add column if not exists hash_importacao text;
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'transacoes_origem_check'
+  ) then
+    alter table public.transacoes add constraint transacoes_origem_check check (origem in ('manual', 'importado'));
+  end if;
+end $$;
+
+-- Evita duplicar o mesmo lançamento se a usuária importar o mesmo extrato
+-- duas vezes (hash calculado a partir de data + valor + descrição, veja
+-- src/lib/importarExtrato.ts).
+create unique index if not exists transacoes_user_hash_importacao_idx
+  on public.transacoes (user_id, hash_importacao)
+  where hash_importacao is not null;
 
 -- ----------------------------------------------------------------------------
 -- Tabela: reservas_recorrentes
