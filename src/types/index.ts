@@ -5,6 +5,7 @@ export type TipoTransacao = 'entrada' | 'saida'
 export type TipoCategoria = 'entrada' | 'saida' | 'ambos'
 export type TipoFormaPagamento = 'dinheiro' | 'cartao' | 'pix' | 'outro'
 export type Frequencia = 'mensal' | 'quinzenal' | 'trimestral' | 'semestral' | 'anual' | 'personalizada'
+export type OrigemTransacao = 'manual' | 'importado'
 
 export interface Categoria {
   id: string
@@ -34,6 +35,8 @@ export interface Transacao {
   forma_pagamento_id: string | null
   descricao: string | null
   recorrente: boolean
+  origem: OrigemTransacao
+  hash_importacao: string | null
   criado_em: string
 }
 
@@ -64,7 +67,10 @@ export interface AtalhoRapido {
 
 // Campos que a usuária preenche ao criar/editar — sem os campos
 // gerados automaticamente pelo banco (id, user_id, criado_em).
-export type NovaTransacao = Omit<Transacao, 'id' | 'user_id' | 'criado_em'>
+export type NovaTransacao = Omit<Transacao, 'id' | 'user_id' | 'criado_em' | 'origem' | 'hash_importacao'> & {
+  origem?: OrigemTransacao
+  hash_importacao?: string | null
+}
 export type NovaCategoria = Omit<Categoria, 'id' | 'user_id' | 'criado_em'>
 export type NovaFormaPagamento = Omit<FormaPagamento, 'id' | 'user_id' | 'criado_em'>
 export type NovaReservaRecorrente = Omit<ReservaRecorrente, 'id' | 'user_id' | 'criado_em'>

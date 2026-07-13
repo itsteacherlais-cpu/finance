@@ -27,6 +27,7 @@ interface DataContextValue {
   criarTransacao: (dados: NovaTransacao) => Promise<void>
   atualizarTransacao: (id: string, dados: Partial<NovaTransacao>) => Promise<void>
   excluirTransacao: (id: string) => Promise<void>
+  importarTransacoes: (dados: NovaTransacao[]) => Promise<{ inseridas: number; duplicadas: number }>
 
   criarCategoria: (dados: NovaCategoria) => Promise<void>
   atualizarCategoria: (id: string, dados: Partial<NovaCategoria>) => Promise<void>
@@ -125,6 +126,25 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.from('transacoes').delete().eq('id', id)
     if (error) throw new Error(error.message)
     setTransacoes((atual) => atual.filter((t) => t.id !== id))
+  }
+
+  // Insere vários lançamentos de uma vez (usado pela importação de extrato).
+  // Usa "upsert" com a chave (user_id, hash_importacao) para não duplicar
+  // lançamentos se a usuária importar o mesmo extrato mais de uma vez —
+  // linhas cujo hash já existe são ignoradas silenciosamente pelo banco.
+  async function importarTransacoes(dados: NovaTransacao[]) {
+    if (!userId || dados.length === 0) return { inseridas: 0, duplicadas: 0 }
+    const { data, error } = await supabase
+      .from('transacoes')
+      .upsert(
+        dados.map((d) => ({ ...d, user_id: userId })),
+        { onConflict: 'user_id,hash_importacao', ignoreDuplicates: true },
+      )
+      .select()
+    if (error) throw new Error(error.message)
+    const inseridas = (data as Transacao[] | null) ?? []
+    setTransacoes((atual) => [...inseridas, ...atual].sort((a, b) => (a.data < b.data ? 1 : -1)))
+    return { inseridas: inseridas.length, duplicadas: dados.length - inseridas.length }
   }
 
   async function criarCategoria(dados: NovaCategoria) {
@@ -233,6 +253,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         criarTransacao,
         atualizarTransacao,
         excluirTransacao,
+        importarTransacoes,
         criarCategoria,
         atualizarCategoria,
         excluirCategoria,

@@ -1,8 +1,9 @@
 import { useMemo, useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useData } from '../context/DataContext'
 import { calcularAtalhosRapidos } from '../lib/atalhos'
 import { hojeISO } from '../lib/formatacao'
+import { IconeUpload } from '../components/icones'
 import type { TipoTransacao } from '../types'
 
 interface AtalhoExibicao {
@@ -109,7 +110,16 @@ export default function NovoLancamento() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold text-cafe-800">Novo lançamento</h1>
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-xl font-semibold text-cafe-800">Novo lançamento</h1>
+        <Link
+          to="/importar"
+          className="flex items-center gap-1.5 rounded-lg border border-bege-200 bg-white px-3 py-2 text-sm font-medium text-cafe-600"
+        >
+          <IconeUpload className="h-4 w-4" />
+          Importar extrato
+        </Link>
+      </div>
 
       {atalhos.length > 0 && (
         <div>

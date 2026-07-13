@@ -175,11 +175,37 @@ para não contar duas vezes) com o total das reservas do mês.
   "Salvar em PDF" em vez de uma impressora física) exportam exatamente os
   lançamentos filtrados na tela.
 
+### Importação de extrato em PDF
+
+Na tela "Novo lançamento", o botão "Importar extrato" abre uma tela onde dá
+para enviar o PDF do extrato do banco ou da fatura do cartão, em vez de
+digitar cada lançamento na mão:
+
+- O texto do PDF é lido **direto no navegador** (biblioteca `pdfjs-dist`,
+  veja `src/lib/importarExtrato.ts`) — o arquivo não é enviado para nenhum
+  servidor além do próprio Supabase, na hora de salvar os lançamentos.
+- Cada linha reconhecida (data + descrição + valor) já entra salva na lista
+  de Transações, com uma **categoria sugerida automaticamente** com base no
+  que você já categorizou antes (`src/lib/categorizacaoAutomatica.ts`): por
+  exemplo, se toda vez que aparece "UBER" você categoriza como Transporte,
+  a próxima importação já sugere isso sozinha. Quanto mais você usa e
+  corrige o app, melhor fica a sugestão — não precisa de nenhuma
+  configuração manual.
+- Reimportar o mesmo extrato não duplica lançamentos: cada linha gera um
+  "hash" (a partir de data + valor + descrição) que é comparado com o que já
+  existe no banco.
+- Como o layout de PDF varia muito de banco para banco, a leitura é de
+  "melhor esforço": linhas fora do padrão esperado são ignoradas (e
+  contadas, para você saber que precisa lançar aquelas na mão), e toda
+  transação importada continua editável normalmente na tela de Transações
+  (categoria, valor, data, tudo).
+
 ### O que ainda falta (fora de escopo por enquanto)
 
-Fases 1, 2 e 3 do briefing original estão implementadas. A Fase 4 (expansão
-para outras áreas da vida além de finanças) é uma visão de longo prazo e
-não está no escopo deste app.
+Fases 1, 2 e 3 do briefing original estão implementadas, além da
+importação de extrato em PDF descrita acima. A ideia original de "Fase 4"
+(expansão para outras áreas da vida além de finanças) é uma visão de longo
+prazo e não está no escopo deste app.
 
 ---
 

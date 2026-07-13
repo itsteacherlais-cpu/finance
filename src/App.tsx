@@ -5,6 +5,7 @@ import Layout from './components/Layout'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import NovoLancamento from './pages/NovoLancamento'
+import ImportarExtrato from './pages/ImportarExtrato'
 import Transacoes from './pages/Transacoes'
 import ReservasInteligentes from './pages/ReservasInteligentes'
 import Configuracoes from './pages/Configuracoes'
@@ -46,6 +47,7 @@ function AreaAutenticada() {
         <Route element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="novo" element={<NovoLancamento />} />
+          <Route path="importar" element={<ImportarExtrato />} />
           <Route path="transacoes" element={<Transacoes />} />
           <Route path="reservas" element={<ReservasInteligentes />} />
           <Route path="config" element={<Configuracoes />} />
